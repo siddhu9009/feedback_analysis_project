@@ -1,0 +1,299 @@
+{% extends "feedback/base.html" %}
+{% block title %}{{ form.title }} — Dashboard{% endblock %}
+{% block nav_forms %}active{% endblock %}
+{% block breadcrumb %}Forms → {{ form.title }}{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Header -->
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h2>📊 {{ form.title }}</h2>
+        <p>Real-time analytics dashboard</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'export_form_pdf' form.id %}" class="btn btn-outline-primary">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+        </a>
+        <a href="{% url 'download_report' form.id %}" class="btn btn-primary">
+            <i class="bi bi-download me-1"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- KPI Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="kpi-card text-center">
+            <div class="kpi-icon blue mx-auto"><i class="bi bi-people-fill"></i></div>
+            <div class="kpi-label">Total Responses</div>
+            <div class="kpi-value">{{ total_responses }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="sentiment-block positive">
+            <div style="font-size:2rem;">😊</div>
+            <div class="kpi-value" style="color:#065f46;">{{ sentiment_summary.positive }}</div>
+            <div style="font-weight:700;color:#065f46;font-size:0.85rem;">Positive</div>
+            <div style="font-size:0.75rem;color:#6b7280;">{{ sentiment_summary.positive_pct }}% of text answers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="sentiment-block neutral">
+            <div style="font-size:2rem;">😐</div>
+            <div class="kpi-value" style="color:#475569;">{{ sentiment_summary.neutral }}</div>
+            <div style="font-weight:700;color:#475569;font-size:0.85rem;">Neutral</div>
+            <div style="font-size:0.75rem;color:#6b7280;">{{ sentiment_summary.neutral_pct }}% of text answers</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="sentiment-block negative">
+            <div style="font-size:2rem;">😞</div>
+            <div class="kpi-value" style="color:#991b1b;">{{ sentiment_summary.negative }}</div>
+            <div style="font-weight:700;color:#991b1b;font-size:0.85rem;">Negative</div>
+            <div style="font-size:0.75rem;color:#6b7280;">{{ sentiment_summary.negative_pct }}% of text answers</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card-pro h-100">
+            <h6 style="font-weight:700;margin-bottom:20px;">Overall Sentiment</h6>
+            <canvas id="sentimentDonut" style="max-height:220px;"></canvas>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card-pro h-100">
+            <h6 style="font-weight:700;margin-bottom:20px;">Sentiment Trend Over Time</h6>
+            <div style="height:200px;"><canvas id="sentimentTrendChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Insights Row -->
+{% if ai_summary %}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card-pro h-100" style="border: 1px solid rgba(99,102,241,0.2); padding: 24px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -50px; right: -50px; font-size: 15rem; opacity: 0.02; pointer-events: none;">🤖</div>
+            <div class="d-flex align-items-center mb-3">
+                <div class="kpi-icon mx-0 me-3" style="background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(6,182,212,0.1)); color:var(--primary); font-size:1.5rem; border-radius: 12px; display:flex; align-items:center; justify-content:center; width:48px; height:48px;"><i class="bi bi-robot"></i></div>
+                <div>
+                    <h6 style="font-weight:800; margin:0; font-size:1.1rem; color:var(--text);">AI Feedback Summary</h6>
+                    <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Automatically generated insights from all text responses</span>
+                </div>
+            </div>
+            
+            <div class="row g-3 mt-1">
+                <div class="col-md-4">
+                    <div style="font-size:0.85rem; color:var(--text); background:var(--bg); padding:16px; border-radius:12px; height:100%; border: 1px solid var(--border); border-top: 3px solid #ef4444;">
+                        <strong style="font-size:0.95rem; display:block; margin-bottom:8px; color:#ef4444;"><i class="bi bi-exclamation-triangle-fill me-1"></i> Issues Detected</strong>
+                        <span style="line-height: 1.6; color:var(--text2);">{{ ai_summary.issues|default:"No critical issues detected."|linebreaksbr }}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="font-size:0.85rem; color:var(--text); background:var(--bg); padding:16px; border-radius:12px; height:100%; border: 1px solid var(--border); border-top: 3px solid #22c55e;">
+                        <strong style="font-size:0.95rem; display:block; margin-bottom:8px; color:#22c55e;"><i class="bi bi-check-circle-fill me-1"></i> Positives</strong>
+                        <span style="line-height: 1.6; color:var(--text2);">{{ ai_summary.positives|default:"No positive trends identified yet."|linebreaksbr }}</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="font-size:0.85rem; color:var(--text); background:var(--bg); padding:16px; border-radius:12px; height:100%; border: 1px solid var(--border); border-top: 3px solid #3b82f6;">
+                        <strong style="font-size:0.95rem; display:block; margin-bottom:8px; color:#3b82f6;"><i class="bi bi-lightbulb-fill me-1"></i> Suggestions</strong>
+                        <span style="line-height: 1.6; color:var(--text2);">{{ ai_summary.suggestions|default:"No suggestions currently available."|linebreaksbr }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Activity Trend -->
+<div class="card-pro mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h6 style="font-weight:700;margin:0;">Activity Over Time</h6>
+        <span class="badge-neutral">Daily Trend</span>
+    </div>
+    <div style="height:180px;"><canvas id="trendChart"></canvas></div>
+</div>
+
+<!-- Field Insights -->
+<div class="page-header" style="margin-top:8px;">
+    <h2 style="font-size:1.1rem;">🔍 Field Insights</h2>
+</div>
+<div class="row g-3">
+    {% for field in field_analytics %}
+    <div class="col-lg-6">
+        <div class="card-pro h-100">
+            <div class="d-flex align-items-center mb-4 gap-3">
+                <div class="kpi-icon {% if field.type == 'number' %}cyan{% elif field.type == 'dropdown' %}blue{% else %}green{% endif %}" style="margin:0;flex-shrink:0;">
+                    {% if field.type == "number" %}<i class="bi bi-hash"></i>
+                    {% elif field.type == "dropdown" %}<i class="bi bi-pie-chart-fill"></i>
+                    {% else %}<i class="bi bi-chat-left-quote"></i>{% endif %}
+                </div>
+                <div>
+                    <div style="font-weight:700;color:var(--text);">{{ field.label }}</div>
+                    <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">{{ field.type }}</div>
+                </div>
+            </div>
+
+            {% if field.type == "number" %}
+                {% if field.calculate_stats %}
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="text-center p-3 rounded-3" style="background:#eef2ff;">
+                            <div style="font-size:0.68rem;font-weight:700;color:var(--primary);text-transform:uppercase;">Avg</div>
+                            <div style="font-size:1.4rem;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;">{{ field.average }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-3 rounded-3" style="background:#d1fae5;">
+                            <div style="font-size:0.68rem;font-weight:700;color:#065f46;text-transform:uppercase;">Min</div>
+                            <div style="font-size:1.4rem;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;">{{ field.min }}</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-3 rounded-3" style="background:#fee2e2;">
+                            <div style="font-size:0.68rem;font-weight:700;color:#991b1b;text-transform:uppercase;">Max</div>
+                            <div style="font-size:1.4rem;font-weight:800;color:var(--text);font-family:'DM Mono',monospace;">{{ field.max }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;">Recent values:</div>
+                {% for ans in field.recent_answers %}
+                <div class="answer-item" style="font-family:'DM Mono',monospace;font-size:0.85rem;">{{ ans }}</div>
+                {% empty %}
+                <div style="color:var(--text-muted);font-size:0.85rem;">No answers yet.</div>
+                {% endfor %}
+                {% endif %}
+            {% endif %}
+
+            {% if field.type == "dropdown" %}
+            <div class="mx-auto" style="max-width:260px;">
+                <canvas id="chart{{ forloop.counter }}"></canvas>
+            </div>
+            <script>
+            (function(){
+                const raw = JSON.parse('{{ field.distribution|escapejs }}');
+                if (!raw.length) return;
+                new Chart(document.getElementById("chart{{ forloop.counter }}"), {
+                    type:'doughnut',
+                    data:{
+                        labels: raw.map(d=>d.answer_text),
+                        datasets:[{ data: raw.map(d=>d.total),
+                            backgroundColor:['#6366f1','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6'],
+                            borderWidth:0, hoverOffset:10 }]
+                    },
+                    options:{ responsive:true, cutout:'68%',
+                        plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:14, font:{size:11} } } }
+                    }
+                });
+            })();
+            </script>
+            {% endif %}
+
+            {% if field.type == "text" %}
+            {% if field.sentiment %}
+            <div class="d-flex gap-2 flex-wrap mb-3">
+                <span class="badge-positive">😊 {{ field.sentiment.positive }}</span>
+                <span class="badge-neutral">😐 {{ field.sentiment.neutral }}</span>
+                <span class="badge-negative">😞 {{ field.sentiment.negative }}</span>
+            </div>
+            {% endif %}
+            {% for answer in field.recent_answers %}
+            <div class="answer-item d-flex justify-content-between align-items-start">
+                <span style="font-size:0.85rem;color:var(--text);">{{ answer.text }}</span>
+                {% if answer.sentiment == "positive" %}
+                    <span class="badge-positive ms-2" style="flex-shrink:0;">😊</span>
+                {% elif answer.sentiment == "negative" %}
+                    <span class="badge-negative ms-2" style="flex-shrink:0;">😞</span>
+                {% else %}
+                    <span class="badge-neutral ms-2" style="flex-shrink:0;">😐</span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div style="color:var(--text-muted);font-size:0.85rem;text-align:center;padding:20px 0;">
+                <i class="bi bi-inbox" style="display:block;font-size:1.5rem;margin-bottom:6px;"></i>No responses yet
+            </div>
+            {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Activity Trend
+    const trendRaw = JSON.parse('{{ response_trend|escapejs }}');
+    if (trendRaw.length) {
+        new Chart(document.getElementById('trendChart'), {
+            type:'line',
+            data:{
+                labels: trendRaw.map(d=>d.day),
+                datasets:[{ label:'Responses', data: trendRaw.map(d=>d.count),
+                    fill:true, backgroundColor:'rgba(99,102,241,0.08)', borderColor:'#6366f1',
+                    borderWidth:2.5, tension:0.4, pointRadius:4,
+                    pointBackgroundColor:'#fff', pointBorderColor:'#6366f1', pointBorderWidth:2 }]
+            },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+                scales:{ x:{grid:{display:false},ticks:{color:'#94a3b8'}},
+                         y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:1,color:'#94a3b8'}} }
+            }
+        });
+    }
+
+    // Sentiment Donut
+    const positiveCount = parseInt("{{ sentiment_summary.positive }}") || 0;
+    const neutralCount  = parseInt("{{ sentiment_summary.neutral }}")  || 0;
+    const negativeCount = parseInt("{{ sentiment_summary.negative }}") || 0;
+
+    new Chart(document.getElementById('sentimentDonut'), {
+        type:'doughnut',
+        data:{
+            labels:['Positive 😊','Neutral 😐','Negative 😞'],
+            datasets:[{ data:[positiveCount, neutralCount, negativeCount],
+                backgroundColor:['#10b981','#94a3b8','#ef4444'], borderWidth:0, hoverOffset:8 }]
+        },
+        options:{ responsive:true, cutout:'72%',
+            plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:16, font:{size:12} } } }
+        }
+    });
+
+    // Sentiment Trend
+    const sentRaw = JSON.parse('{{ sentiment_trend|escapejs }}');
+    const days = [...new Set(sentRaw.map(d=>d.day))].sort();
+    function series(label) {
+        return days.map(day => {
+            const f = sentRaw.find(d => d.day===day && d.sentiment===label);
+            return f ? f.count : 0;
+        });
+    }
+    if (days.length) {
+        new Chart(document.getElementById('sentimentTrendChart'), {
+            type:'line',
+            data:{
+                labels: days,
+                datasets:[
+                    { label:'😊 Positive', data:series('positive'), borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.08)', fill:true, tension:0.4 },
+                    { label:'😐 Neutral',  data:series('neutral'),  borderColor:'#94a3b8', backgroundColor:'rgba(148,163,184,0.08)', fill:true, tension:0.4 },
+                    { label:'😞 Negative', data:series('negative'), borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)', fill:true, tension:0.4 },
+                ]
+            },
+            options:{ responsive:true, maintainAspectRatio:false,
+                plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:16, font:{size:12} } } },
+                scales:{ x:{grid:{display:false},ticks:{color:'#94a3b8'}},
+                         y:{beginAtZero:true,grid:{color:'#f1f5f9'},ticks:{stepSize:1,color:'#94a3b8'}} }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

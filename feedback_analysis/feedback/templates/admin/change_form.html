@@ -1,0 +1,273 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* ── Form Card ────────────────────────────────────── */
+    #content-main form {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    /* ── Fieldsets ────────────────────────────────────── */
+    fieldset.module {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    fieldset.module h2 {
+        background: transparent !important;
+        color: var(--text) !important;
+        padding: 24px 32px 16px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        border-bottom: 1px solid var(--border) !important;
+        margin-bottom: 8px;
+    }
+
+    /* ── Form Rows ────────────────────────────────────── */
+    fieldset.module .form-row {
+        padding: 16px 32px !important;
+        border-bottom: none !important;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    fieldset.module .form-row>div {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+        max-width: 600px; /* SaaS standard restricted width for forms */
+    }
+
+    /* Ensure tabular inlines restore table-row layout */
+    tr.form-row {
+        display: table-row !important;
+    }
+
+    .form-row label {
+        display: block !important;
+        float: none !important;
+        font-weight: 500 !important;
+        font-size: 0.85rem !important;
+        color: var(--text-muted) !important;
+        margin-bottom: 2px;
+    }
+
+    .inline-group tbody td label {
+        display: none !important;
+    }
+
+    .form-row .help {
+        font-size: 0.75rem !important;
+        color: var(--text-muted) !important;
+        margin-top: 4px;
+        opacity: 0.8;
+    }
+
+    /* ── Inputs ───────────────────────────────────────── */
+    input[type=text],
+    input[type=password],
+    input[type=email],
+    input[type=number],
+    input[type=url],
+    textarea,
+    select {
+        width: 100%;
+        max-width: 100%;
+        border: 1px solid var(--border) !important;
+        border-radius: 6px !important;
+        padding: 10px 14px !important;
+        font-size: 0.9rem !important;
+        color: var(--text) !important;
+        background: var(--bg) !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+    }
+
+    input[type=text]:focus,
+    input[type=password]:focus,
+    input[type=email]:focus,
+    textarea:focus,
+    select:focus {
+        border-color: var(--primary) !important;
+        outline: none !important;
+        box-shadow: var(--focus-ring) !important;
+    }
+
+    input[type=checkbox] {
+        accent-color: var(--primary);
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    /* ── Submit Row ───────────────────────────────────── */
+    .submit-row {
+        background: var(--card-bg) !important;
+        border: none !important;
+        border-top: 1px solid var(--border) !important;
+        padding: 24px 32px !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px !important;
+    }
+
+    .submit-row p.deletelink-box {
+        margin: 0;
+        margin-right: auto;
+    }
+
+    /* Buttons */
+    .submit-row input[type=submit] {
+        background: var(--primary) !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 6px !important;
+        padding: 10px 20px !important;
+        font-weight: 500 !important;
+        font-size: 0.85rem !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+    }
+
+    .submit-row input[type=submit]:hover {
+        background: var(--primary-hover) !important;
+    }
+
+    .submit-row input[name="_continue"],
+    .submit-row input[name="_addanother"] {
+        background: transparent !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    .submit-row input[name="_continue"]:hover,
+    .submit-row input[name="_addanother"]:hover {
+        border-color: var(--text-muted) !important;
+        background: var(--bg) !important;
+    }
+
+    .deletelink {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: var(--danger) !important;
+        background: transparent !important;
+        border: 1px solid var(--danger) !important;
+        padding: 9px 18px !important;
+        border-radius: 6px !important;
+        font-weight: 500 !important;
+        font-size: 0.85rem !important;
+        text-decoration: none !important;
+        transition: all 0.2s !important;
+        box-sizing: border-box !important;
+    }
+    
+    .deletelink:hover {
+        background: rgba(239, 68, 68, 0.1) !important;
+    }
+
+    /* ── Inline Groups ────────────────────────────────── */
+    .inline-group {
+        background: transparent !important;
+        border: none !important;
+        margin-top: 40px !important;
+        box-shadow: none !important;
+        overflow: hidden;
+    }
+
+    .inline-group h2 {
+        background: transparent !important;
+        color: var(--text) !important;
+        padding: 0 32px 16px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        border-bottom: 1px solid var(--border) !important;
+        margin-bottom: 16px;
+    }
+
+    .inline-group table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+    .inline-group {
+        overflow-x: auto;
+    }
+
+    /* Inline Table styling */
+    .inline-group thead th {
+        background: transparent;
+        padding: 12px 16px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .inline-group tbody td {
+        padding: 16px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+    }
+
+    .inline-group td input[type=text],
+    .inline-group td select,
+    .inline-group td textarea {
+        font-size: 0.85rem !important;
+        padding: 8px 10px !important;
+        min-width: 140px;
+    }
+
+    .inline-group td input[type=checkbox] {
+        width: 16px;
+        height: 16px;
+    }
+
+    .inline-group .add-row {
+        background: transparent;
+        border-top: 1px solid var(--border);
+        padding: 16px 32px;
+    }
+
+    .inline-group .add-row a {
+        font-weight: 500;
+        color: var(--primary);
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+    
+    .inline-group .add-row a:hover {
+        text-decoration: underline;
+    }
+
+    /* Hide duplicate 'Add another' buttons spawned by JS conflicts */
+    .inline-group .add-row {
+        display: none !important;
+    }
+
+    .inline-group .add-row:last-child {
+        display: table-row !important;
+    }
+
+    .inline-group div.add-row:last-child {
+        display: block !important;
+    }
+</style>
+{% endblock %}

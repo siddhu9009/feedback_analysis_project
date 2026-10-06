@@ -1,0 +1,77 @@
+{% extends "feedback/base.html" %}
+{% block title %}{{ form.title }} — Full Report{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block breadcrumb %}Reports → {{ form.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start">
+    <div>
+        <h2>🗂 {{ form.title }} — Full Report</h2>
+        <p>{{ total_responses }} total responses collected</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'dashboard_form' form.id %}" class="btn btn-outline-primary">
+            <i class="bi bi-bar-chart me-1"></i> Dashboard
+        </a>
+        <a href="{% url 'export_form_pdf' form.id %}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+        </a>
+        <a href="{% url 'download_report' form.id %}" class="btn btn-primary">
+            <i class="bi bi-download me-1"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- Sentiment Summary -->
+<div class="card-pro mb-4 d-flex gap-3 flex-wrap align-items-center">
+    <span style="font-weight:700;color:var(--text-muted);font-size:0.85rem;">SENTIMENT SUMMARY</span>
+    <span class="badge-positive">😊 Positive: {{ sentiment_summary.positive }} ({{ sentiment_summary.positive_pct }}%)</span>
+    <span class="badge-neutral">😐 Neutral: {{ sentiment_summary.neutral }} ({{ sentiment_summary.neutral_pct }}%)</span>
+    <span class="badge-negative">😞 Negative: {{ sentiment_summary.negative }} ({{ sentiment_summary.negative_pct }}%)</span>
+    <span style="color:var(--text-muted);font-size:0.78rem;margin-left:auto;">Based on {{ sentiment_summary.total }} text answers</span>
+</div>
+
+<!-- Response Table -->
+<div class="card-pro p-0" style="overflow-x:auto;">
+    <table class="table table-pro mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Submitted At</th>
+                {% for field in fields %}
+                <th>{{ field.label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for resp in all_responses %}
+            <tr>
+                <td style="font-family:'DM Mono',monospace;color:var(--text-muted);font-size:0.8rem;">{{ forloop.counter }}</td>
+                <td style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap;">{{ resp.submitted_at|date:"M d, Y H:i" }}</td>
+                {% for field in fields %}
+                <td>
+                    {% for label, data in resp.answers.items %}
+                        {% if label == field.label %}
+                        <span style="font-size:0.85rem;">{{ data.text }}</span>
+                        {% if field.field_type == "text" and data.sentiment %}
+                            {% if data.sentiment == "positive" %}<span class="badge-positive ms-1">😊</span>
+                            {% elif data.sentiment == "negative" %}<span class="badge-negative ms-1">😞</span>
+                            {% else %}<span class="badge-neutral ms-1">😐</span>{% endif %}
+                        {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="100" class="text-center py-5" style="color:var(--text-muted);">
+                    <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                    No responses yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

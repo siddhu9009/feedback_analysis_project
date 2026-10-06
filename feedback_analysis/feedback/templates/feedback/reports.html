@@ -1,0 +1,177 @@
+{% extends "feedback/base.html" %}
+{% block title %}Reports — FeedbackIQ{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block breadcrumb %}Reports{% endblock %}
+
+{% block content %}
+<style>
+    .form-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        color: var(--text);
+    }
+    
+    .form-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    
+    .form-metadata {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        flex-wrap: wrap;
+    }
+    
+    .form-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0;
+        min-width: 150px;
+    }
+    
+    .form-responses {
+        font-weight: 600;
+        color: var(--text2);
+        font-size: 0.95rem;
+    }
+
+    .sentiment-badges {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .badge-pos { background: #22c55e; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; }
+    .badge-neu { background: #f59e0b; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; }
+    .badge-neg { background: #ef4444; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; }
+
+    .form-card-body {
+        padding: 0;
+        background: var(--bg);
+    }
+    
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+    
+    .stats-table th {
+        text-align: left;
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text2);
+        font-weight: 600;
+        background: rgba(0,0,0,0.02);
+    }
+    
+    .stats-table td {
+        padding: 12px 24px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+    }
+    
+    .stats-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    [data-theme="dark"] .stats-table th {
+        background: rgba(255,255,255,0.02);
+    }
+    
+    .btn-actions {
+        display: flex;
+        gap: 8px;
+    }
+</style>
+
+<div class="page-header mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <h2 style="font-weight: 800; margin: 0;">📋 Feedback Reports</h2>
+    <div style="position:relative; max-width: 350px; width:100%;">
+        <i class="bi bi-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i>
+        <input type="text" id="quickSearchReports" class="form-control bg-transparent" placeholder="Search reports by form name..." style="padding-left:40px; border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text);">
+    </div>
+</div>
+
+{% for report in report_data %}
+<div class="form-card shadow-sm">
+    <div class="form-card-header">
+        <div class="form-metadata">
+            <h4 class="form-title">{{ report.form.title }}</h4>
+            <div class="form-responses">{{ report.total_responses }} Responses</div>
+            <div class="sentiment-badges">
+                <span class="badge-pos" title="Positive">{{ report.sentiment_summary.positive_pct }}% Pos</span>
+                <span class="badge-neu" title="Neutral">{{ report.sentiment_summary.neutral_pct }}% Neu</span>
+                <span class="badge-neg" title="Negative">{{ report.sentiment_summary.negative_pct }}% Neg</span>
+            </div>
+        </div>
+        <div class="btn-actions">
+            <a href="{% url 'report_detail' report.form.id %}" class="btn btn-sm btn-outline-primary">Details</a>
+            <a href="{% url 'export_form_pdf' report.form.id %}" class="btn btn-sm btn-outline-success">PDF</a>
+            <a href="{% url 'download_report' report.form.id %}" class="btn btn-sm btn-primary">CSV</a>
+        </div>
+    </div>
+    
+    <div class="form-card-body">
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Type</th>
+                    <th>Total Answers</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for field in report.fields %}
+                <tr>
+                    <td style="font-weight: 600;">{{ field.label }}</td>
+                    <td><span style="text-transform: uppercase; font-size: 0.75rem; font-weight: 700; color: var(--text2);">{{ field.type }}</span></td>
+                    <td>{{ field.total_answers }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 20px; color: var(--text2);">No fields defined.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-5" style="border-radius: 8px; border: 2px dashed var(--border);">
+    <div style="font-size: 3rem; opacity: 0.3; margin-bottom: 12px;">📭</div>
+    <h4 style="font-weight: 700; color: var(--text);">No Reports</h4>
+</div>
+{% endfor %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('quickSearchReports');
+    const cards = document.querySelectorAll('.form-card');
+
+    searchInput.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        cards.forEach(card => {
+            const titleElem = card.querySelector('.form-title');
+            if (titleElem) {
+                const title = titleElem.textContent.toLowerCase();
+                if (title.includes(term)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

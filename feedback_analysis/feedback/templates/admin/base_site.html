@@ -1,0 +1,72 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | FeedbackIQ Admin{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Add any Django-specific global style overrides not handled by base.html */
+    
+    /* Hide the default Django header since we built a Topbar in base.html */
+    #header { display: none !important; }
+    
+    /* Standalone choices toggle hook */
+    .field-choices input, .field-choices textarea {
+        width: 100% !important; padding: 6px !important; border: 1px solid var(--border) !important;
+        background: var(--bg); color: var(--text); border-radius: 6px;
+    }
+    
+    /* CSS sequential row numbers for Django Admin lists */
+    table#result_list > tbody {
+        counter-reset: adminRowCounter;
+    }
+    table#result_list > tbody > tr {
+        counter-increment: adminRowCounter;
+    }
+    .admin-row-counter::before {
+        content: counter(adminRowCounter);
+        font-family: 'DM Mono', monospace;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+    // JS for showing/hiding dropdown choices field dynamically in inline forms
+    (function () {
+        function handleRow(row) {
+            var typeSelect = row.querySelector('select[name$="-field_type"]');
+            var choicesInput = row.querySelector('input[name$="-choices"], textarea[name$="-choices"]');
+            if (!typeSelect || !choicesInput) return;
+            var cell = choicesInput.closest('td') || choicesInput.parentElement;
+            function update() {
+                if (typeSelect.value === 'dropdown') {
+                    cell.style.display = '';
+                } else {
+                    cell.style.display = 'none';
+                }
+            }
+            update();
+            typeSelect.addEventListener('change', update);
+        }
+        function initAll() {
+            document.querySelectorAll('tr[id*="formfield_set"], tr.dynamic-formfield_set').forEach(handleRow);
+            // Standalone form
+            var ts = document.querySelector('#id_field_type');
+            var ci = document.querySelector('#id_choices');
+            if (ts && ci) {
+                var wrap = ci.closest('.form-row') || ci.parentElement;
+                function u() { wrap.style.display = ts.value === 'dropdown' ? '' : 'none'; }
+                u(); ts.addEventListener('change', u);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initAll);
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.closest('.add-row')) setTimeout(initAll, 150);
+        });
+    })();
+</script>
+{% endblock %}

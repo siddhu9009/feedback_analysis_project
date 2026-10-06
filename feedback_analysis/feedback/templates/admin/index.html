@@ -1,0 +1,417 @@
+{% extends "admin/index.html" %}
+
+{% block title %}Dashboard | Admin{% endblock %}
+
+{% block pretitle %}
+<div class="feedbackiq-banner">
+    <div class="feedbackiq-banner-left">
+        <div class="feedbackiq-banner-icon"><i class="bi bi-activity"></i></div>
+        <div>
+            <h2>Dashboard Overview</h2>
+            <p>Manage all applications, resources, and settings below.</p>
+        </div>
+    </div>
+    <a href="/admin/" class="banner-btn" target="_blank">Open Dashboard<i class="bi bi-arrow-up-right"></i></a>
+</div>
+
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="summary-label">Total Forms</div>
+        <div class="summary-value">--</div>
+        <a href="{% url 'admin:feedback_form_changelist' %}" class="summary-link">View Forms &rarr;</a>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">Total Responses</div>
+        <div class="summary-value">--</div>
+        <a href="{% url 'admin:feedback_response_changelist' %}" class="summary-link">View Responses &rarr;</a>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">Total Users</div>
+        <div class="summary-value">--</div>
+        <a href="{% url 'admin:auth_user_changelist' %}" class="summary-link">View Users &rarr;</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% load i18n %}{% translate 'Recent actions' %}</h2>
+        <h3>{% translate 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 4 as admin_log for_user user %}
+            {% if not admin_log %}
+            <p>{% translate 'None available' %}</p>
+            {% else %}
+            <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br>
+                {% if entry.content_type %}
+                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                {% else %}
+                    <span class="mini quiet">{% translate 'Unknown content' %}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* ── Banner ──────────────────────────────────────────── */
+    .feedbackiq-banner {
+        background: linear-gradient(135deg, var(--primary) 0%, #38bdf8 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .feedbackiq-banner-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .feedbackiq-banner-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        color: #ffffff;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .feedbackiq-banner h2 {
+        color: #ffffff !important;
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        margin: 0 0 4px !important;
+        letter-spacing: -0.01em !important;
+    }
+
+    .feedbackiq-banner p {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 0.9rem !important;
+        margin: 0 !important;
+    }
+
+    .banner-btn {
+        background: #ffffff;
+        color: var(--primary) !important;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none !important;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .banner-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ── Summary Cards ───────────────────────────────────── */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .summary-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+
+    .summary-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 16px;
+    }
+
+    .summary-link {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--primary);
+        text-decoration: none !important;
+        margin-top: auto;
+    }
+
+    .summary-link:hover {
+        text-decoration: underline !important;
+    }
+
+    /* ── Default App Modules ─────────────────────────────────────── */
+    #content-main .module {
+        background: var(--card-bg) !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--border) !important;
+        overflow: hidden !important;
+        margin-bottom: 24px !important;
+        box-shadow: none !important;
+    }
+
+    #content-main .module caption {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
+        color: #ffffff !important;
+        padding: 16px 24px !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        text-transform: capitalize !important;
+        letter-spacing: 0.5px !important;
+        text-align: left !important;
+        border-bottom: none !important;
+        margin: 0 !important;
+    }
+
+    #content-main .module table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    /* Table Headers (The Bar) */
+    #content-main .module table thead th {
+        padding: 10px 24px !important;
+        background: var(--bg) !important;
+        border-bottom: 1px solid var(--border) !important;
+        font-size: 0.75rem !important;
+        color: var(--text-muted) !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        vertical-align: middle !important;
+    }
+
+    #content-main .module table thead th:nth-child(1) {
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    #content-main .module table thead th:nth-child(2),
+    #content-main .module table thead th:nth-child(3) {
+        width: 1% !important;
+        white-space: nowrap !important;
+        text-align: right !important;
+    }
+
+    #content-main .module table thead th a {
+        color: var(--text-muted) !important;
+        text-decoration: none !important;
+        pointer-events: none;
+        /* Usually these headers are purely descriptive */
+    }
+
+    /* Table Body Row Headers (Model Name) */
+    #content-main .module table tbody th {
+        padding: 16px 24px !important;
+        border-bottom: 1px solid var(--border) !important;
+        font-size: 0.95rem !important;
+        color: var(--text) !important;
+        font-weight: 600 !important;
+        text-align: left !important;
+        vertical-align: middle !important;
+        background: var(--card-bg) !important;
+        width: 100%;
+        transition: background 0.15s;
+    }
+
+    #content-main .module table tbody th a {
+        color: var(--text) !important;
+        text-decoration: none !important;
+    }
+
+    #content-main .module table tbody th a:hover {
+        color: var(--primary) !important;
+    }
+
+    /* Table Body Cells (Add / Change Buttons) */
+    #content-main .module table td {
+        padding: 16px 12px !important;
+        border-bottom: 1px solid var(--border) !important;
+        font-size: 0.875rem !important;
+        color: var(--text) !important;
+        font-weight: 500 !important;
+        vertical-align: middle !important;
+        background: var(--card-bg) !important;
+        white-space: nowrap !important;
+        width: 1%;
+        text-align: right !important;
+        transition: background 0.15s;
+    }
+
+    #content-main .module table td:last-child {
+        padding-right: 24px !important;
+    }
+
+    #content-main .module table tr:last-child td,
+    #content-main .module table tr:last-child th {
+        border-bottom: none !important;
+    }
+
+    #content-main .module table tr:hover td,
+    #content-main .module table tr:hover th {
+        background: var(--bg) !important;
+    }
+
+    #content-main .module table td a {
+        color: var(--text) !important;
+        font-weight: 500 !important;
+    }
+
+    #content-main .module table td a:hover {
+        color: var(--primary) !important;
+    }
+
+    /* ── Add / Change Buttons ────────────────────────────── */
+    /* ── Add / Change Buttons ────────────────────────────── */
+    .addlink {
+        color: #ffffff !important;
+        background: #6366f1 !important;
+        /* matching vibrant indigo */
+        border-radius: 6px !important;
+        padding: 6px 12px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        align-items: center;
+        text-decoration: none !important;
+        transition: all 0.2s;
+        border: 1px solid #4f46e5 !important;
+    }
+
+    .addlink:hover {
+        background: #4f46e5 !important;
+        box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+    }
+
+    .changelink {
+        background: transparent !important;
+        color: #6366f1 !important;
+        border: 1px solid #6366f1 !important;
+        border-radius: 6px !important;
+        padding: 6px 12px !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        margin-left: 8px !important;
+        text-decoration: none !important;
+        transition: all 0.2s;
+    }
+
+    .changelink:hover {
+        background: #6366f1 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+    }
+
+    /* RECENT ACTIONS */
+    #content-related {
+        flex-shrink: 0;
+        width: 300px;
+    }
+
+    #content-related .module {
+        background: var(--card-bg) !important;
+        border-radius: 8px !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    #content-related .module h2 {
+        background: var(--card-bg) !important;
+        color: var(--text) !important;
+        padding: 16px 24px !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        text-transform: capitalize !important;
+        border-bottom: 1px solid var(--border) !important;
+    }
+
+    #content-related .module h3 {
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        color: var(--text-muted) !important;
+        padding: 16px 24px 8px !important;
+        background: var(--card-bg) !important;
+    }
+
+    #content-related .module ul {
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    #content-related .module ul li {
+        padding: 12px 24px !important;
+        border-bottom: 1px solid var(--border) !important;
+        font-size: 0.85rem !important;
+        color: var(--text) !important;
+        background: var(--card-bg) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    #content-related .module ul li:last-child {
+        border-bottom: none !important;
+    }
+
+    #content-related .module ul li::before {
+        content: none !important;
+    }
+
+    #content-related .module ul li a {
+        color: var(--primary) !important;
+        font-weight: 500 !important;
+    }
+
+    #content-related .module ul li .content-type {
+        font-size: 0.75rem !important;
+        color: var(--text-muted) !important;
+        display: block !important;
+        margin-top: 4px !important;
+    }
+</style>
+{% endblock %}

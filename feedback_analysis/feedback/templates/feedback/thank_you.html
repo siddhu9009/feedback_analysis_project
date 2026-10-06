@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You — FeedbackIQ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 52px 48px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.15);
+        }
+
+        .icon-wrap {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 2.2rem;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        p.subtitle {
+            font-size: 0.95rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            width: 100%;
+            margin-bottom: 12px;
+            transition: opacity 0.2s, transform 0.2s;
+            box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+        }
+        .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #f8fafc;
+            color: #6366f1;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            width: 100%;
+            border: 2px solid #e0e7ff;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover { background: #eef2ff; border-color: #c7d2fe; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .brand {
+            margin-top: 28px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .brand span { color: #6366f1; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrap">🎉</div>
+        <h1>Thank You!</h1>
+        <p class="subtitle">
+            Your feedback has been submitted successfully.<br>
+            We really appreciate you taking the time to share your thoughts.
+        </p>
+
+        <!-- Goes to FeedbackIQ Dashboard -->
+        <a href="/admin/" class="btn-primary">
+            📊 Go to Dashboard
+        </a>
+
+        <div class="divider">or</div>
+
+        <!-- Submit another response on the same form -->
+        <a href="{{ form_link }}" class="btn-secondary">
+            🔄 Submit Another Response
+        </a>
+
+        <p class="brand">Powered by <span>FeedbackIQ</span></p>
+    </div>
+</body>
+</html>

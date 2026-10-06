@@ -1,0 +1,185 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+    .submissions-header {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        border-radius: 14px;
+        padding: 24px 28px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+    .submissions-header h1 {
+        color: #fff !important;
+        font-size: 1.2rem !important;
+        font-weight: 800 !important;
+        margin: 0 0 4px !important;
+    }
+    .submissions-header p {
+        color: #94a3b8 !important;
+        font-size: 0.82rem !important;
+        margin: 0 !important;
+    }
+
+    .btn-iq {
+        display: inline-flex; align-items: center; gap: 7px;
+        border-radius: 8px; padding: 9px 18px;
+        font-size: 0.82rem; font-weight: 700;
+        text-decoration: none !important;
+        transition: all 0.2s;
+    }
+    .btn-iq-primary  { background: #4f46e5; color: #fff !important; }
+    .btn-iq-primary:hover { background: #3730a3; color: #fff !important; }
+    .btn-iq-outline  { background: transparent; color: #94a3b8 !important; border: 1px solid rgba(255,255,255,0.2) !important; }
+    .btn-iq-outline:hover { background: rgba(255,255,255,0.08); color: #fff !important; }
+
+    .stats-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+    .stat-pill {
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 20px;
+        display: flex; align-items: center; gap: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .stat-icon {
+        width: 38px; height: 38px; border-radius: 9px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+    }
+    .stat-icon.blue  { background: #eef2ff; color: #4f46e5; }
+    .stat-icon.green { background: #d1fae5; color: #10b981; }
+    .stat-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 2px; }
+    .stat-value { font-size: 1.4rem; font-weight: 800; color: var(--text); font-family: 'DM Mono', monospace; line-height: 1; }
+
+    .table-card {
+        background: var(--input-bg);
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        overflow: auto;
+    }
+    .table-card table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+    .table-card thead th {
+        background: var(--bg);
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+    .table-card tbody td {
+        padding: 13px 18px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        vertical-align: middle;
+    }
+    .table-card tbody tr:last-child td { border-bottom: none; }
+    .table-card tbody tr:hover td { background: var(--bg); }
+
+    .id-badge {
+        font-family: 'DM Mono', monospace;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background: var(--bg);
+        border-radius: 6px;
+        padding: 2px 8px;
+    }
+    .date-cell { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+    .answer-cell { max-width: 220px; }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 0.9rem; font-weight: 600; margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header Banner -->
+<div class="submissions-header">
+    <div>
+        <h1>🗂 Submissions — {{ form.title }}</h1>
+        <p>All collected responses for this feedback form</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="btn-iq btn-iq-outline" title="Share Form" onclick="openShareModal('{{ form.title|escapejs }}', '{{ request.scheme }}://{{ request.get_host }}/form/{{ form.unique_code }}/')">
+            <i class="bi bi-qr-code-scan"></i> Generate QR
+        </button>
+        <a href="{{ dashboard_link }}" class="btn-iq btn-iq-primary">
+            📊 FeedbackIQ Dashboard
+        </a>
+        <a href="/admin_django/" class="btn-iq btn-iq-outline">
+            ← Admin Panel
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-row">
+    <div class="stat-pill">
+        <div class="stat-icon blue">📋</div>
+        <div>
+            <div class="stat-label">Total Submissions</div>
+            <div class="stat-value">{{ table_data|length }}</div>
+        </div>
+    </div>
+    <div class="stat-pill">
+        <div class="stat-icon green">🔢</div>
+        <div>
+            <div class="stat-label">Total Fields</div>
+            <div class="stat-value">{{ fields|length }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Submissions Table -->
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Submitted At</th>
+                {% for field in fields %}
+                <th>{{ field.label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table_data %}
+            <tr>
+                <td><span class="id-badge">{{ forloop.counter }}</span></td>
+                <td class="date-cell">{{ row.submitted_at|date:"M d, Y — H:i" }}</td>
+                {% for answer in row.answers %}
+                <td class="answer-cell">{{ answer|default:"—" }}</td>
+                {% endfor %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="100">
+                    <div class="empty-state">
+                        <span class="empty-icon">📭</span>
+                        <p>No submissions yet for this form.</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends "feedback/base.html" %}
+{% block title %}Dashboard — FeedbackIQ{% endblock %}
+{% block nav_home %}active{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>👋 Welcome back, Admin</h2>
+        <p>Here's what's happening with your feedback forms today.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'export_all_pdf' %}" class="btn btn-outline-primary px-3 py-2" style="font-size:0.85rem;"><i class="bi bi-download me-1"></i> Export PDF</a>
+        <a href="{% url 'export_all_csv' %}" class="btn btn-primary px-3 py-2" style="font-size:0.85rem;"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV</a>
+    </div>
+</div>
+
+<!-- KPI Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon blue"><i class="bi bi-ui-checks"></i></div>
+                <span class="badge bg-success-subtle text-success rounded-pill" style="font-size:0.7rem;"><i class="bi bi-arrow-up-short"></i> 12%</span>
+            </div>
+            <div class="kpi-label">Total Forms</div>
+            <div class="kpi-value count-up" data-target="{{ total_forms|default:0 }}">0</div>
+            <a href="{% url 'forms_list' %}" class="stretched-link"></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon cyan"><i class="bi bi-chat-square-text"></i></div>
+                <span class="badge bg-success-subtle text-success rounded-pill" style="font-size:0.7rem;"><i class="bi bi-arrow-up-short"></i> 8%</span>
+            </div>
+            <div class="kpi-label">Total Responses</div>
+            <div class="kpi-value count-up" data-target="{{ total_responses|default:0 }}">0</div>
+            <a href="{% url 'reports' %}" class="stretched-link"></a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon green"><i class="bi bi-emoji-smile"></i></div>
+                <span class="badge bg-success-subtle text-success rounded-pill" style="font-size:0.7rem;"><i class="bi bi-arrow-up-short"></i> 2.4%</span>
+            </div>
+            <div class="kpi-label">Positive Feedback</div>
+            <div class="d-flex align-items-baseline gap-2">
+                <div class="kpi-value count-up text-success" data-target="{{ overall_sentiment.positive|default:0 }}">0</div>
+                <small class="text-muted">{{ overall_sentiment.positive_pct|default:0 }}%</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-header">
+                <div class="kpi-icon red"><i class="bi bi-emoji-frown"></i></div>
+                <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size:0.7rem;"><i class="bi bi-arrow-down-short"></i> 1.1%</span>
+            </div>
+            <div class="kpi-label">Negative Feedback</div>
+            <div class="d-flex align-items-baseline gap-2">
+                <div class="kpi-value count-up text-danger" data-target="{{ overall_sentiment.negative|default:0 }}">0</div>
+                <small class="text-muted">{{ overall_sentiment.negative_pct|default:0 }}%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card-pro h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 style="font-weight:700;margin:0;font-size:1.1rem;">Response Activity</h6>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off" checked>
+                    <label class="btn btn-outline-secondary btn-sm" for="btnradio1">Weekly</label>
+
+                    <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
+                    <label class="btn btn-outline-secondary btn-sm" for="btnradio2">Monthly</label>
+                </div>
+            </div>
+            <div id="responseTrendChart" style="min-height: 280px;"></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card-pro h-100">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h6 style="font-weight:700;margin:0;font-size:1.1rem;">Sentiment Overview</h6>
+            </div>
+            <div id="overallSentimentChart" style="min-height: 280px; display:flex; align-items:center; justify-content:center;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card-pro">
+    <h6 style="font-weight:700;margin-bottom:20px;font-size:1.1rem;">Recent Activity</h6>
+    <div class="d-flex flex-column gap-3">
+        {% for act in recent_activities %}
+        <div class="d-flex align-items-center gap-3 p-3 rounded" style="border:1px solid var(--border); background: var(--bg);">
+            <div class="kpi-icon {{ act.color }}" style="width:36px;height:36px;min-width:36px;margin:0;"><i class="bi {{ act.icon }}"></i></div>
+            <div class="flex-grow-1">
+                <div style="font-weight:600; font-size:0.9rem;">{{ act.title }}</div>
+                <div class="text-muted" style="font-size:0.8rem;">{{ act.desc }}</div>
+            </div>
+            <div class="text-muted" style="font-size:0.75rem;">{{ act.time|timesince }} ago</div>
+        </div>
+        {% empty %}
+        <div class="text-muted" style="font-size:0.85rem; padding:10px;">No recent activity found.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CountUp Animation
+    const counters = document.querySelectorAll('.count-up');
+    counters.forEach(counter => {
+        const updateCount = () => {
+            const target = +counter.getAttribute('data-target');
+            const count = +counter.innerText;
+            const inc = target / 30; // 30 steps
+            if (count < target) {
+                counter.innerText = Math.ceil(count + inc);
+                setTimeout(updateCount, 30);
+            } else {
+                counter.innerText = target;
+            }
+        };
+        updateCount();
+    });
+
+    // Chart Options Configuration
+    const getChartColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#94a3b8';
+    let textColor = getChartColor('--text-muted');
+    let borderColor = getChartColor('--border');
+
+    // 1. Response Trend (Area Chart)
+    const trendRaw = JSON.parse('{{ response_trend|escapejs|default:"[]" }}');
+    const trendLabels = trendRaw.length ? trendRaw.map(d => d.day) : ['No Data'];
+    const trendData = trendRaw.length ? trendRaw.map(d => d.count) : [0];
+
+    const optionsTrend = {
+        series: [{
+            name: 'Responses',
+            data: trendData
+        }],
+        chart: {
+            height: 280,
+            type: 'area',
+            fontFamily: 'Inter, sans-serif',
+            toolbar: { show: false },
+            zoom: { enabled: false },
+            background: 'transparent'
+        },
+        colors: ['#4f46e5'],
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        fill: {
+            type: 'gradient',
+            gradient: {
+                shadeIntensity: 1,
+                opacityFrom: 0.45,
+                opacityTo: 0.05,
+                stops: [0, 100]
+            }
+        },
+        xaxis: {
+            categories: trendLabels,
+            axisBorder: { show: false },
+            axisTicks: { show: false },
+            labels: { style: { colors: textColor } }
+        },
+        yaxis: {
+            labels: { style: { colors: textColor } }
+        },
+        grid: {
+            borderColor: borderColor,
+            strokeDashArray: 4,
+            yaxis: { lines: { show: true } }
+        },
+        theme: { mode: document.documentElement.getAttribute('data-theme') || 'light' }
+    };
+
+    const chartTrend = new ApexCharts(document.querySelector("#responseTrendChart"), optionsTrend);
+    chartTrend.render();
+
+    // 2. Sentiment Overview (Donut Chart)
+    // Providing default values if 0 for demonstration of modern UI look
+    let positive = parseInt("{{ overall_sentiment.positive }}") || 45;
+    let neutral = parseInt("{{ overall_sentiment.neutral }}") || 20;
+    let negative = parseInt("{{ overall_sentiment.negative }}") || 12;
+
+    const optionsSentiment = {
+        series: [positive, neutral, negative],
+        chart: {
+            type: 'donut',
+            height: 280,
+            fontFamily: 'Inter, sans-serif',
+            background: 'transparent'
+        },
+        labels: ['Positive', 'Neutral', 'Negative'],
+        colors: ['#10b981', '#94a3b8', '#ef4444'],
+        plotOptions: {
+            pie: {
+                donut: {
+                    size: '75%',
+                    labels: {
+                        show: true,
+                        name: { show: true },
+                        value: { show: true, fontSize: '24px', fontWeight: 700, color: getChartColor('--text') }
+                    }
+                }
+            }
+        },
+        dataLabels: { enabled: false },
+        stroke: { show: false },
+        legend: { position: 'bottom', labels: { colors: textColor } },
+        theme: { mode: document.documentElement.getAttribute('data-theme') || 'light' }
+    };
+
+    const chartSentiment = new ApexCharts(document.querySelector("#overallSentimentChart"), optionsSentiment);
+    chartSentiment.render();
+
+    // Update charts on theme change
+    window.addEventListener('themeChanged', () => {
+        const newTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const newTextColor = getChartColor('--text-muted');
+        const newBorderColor = getChartColor('--border');
+        const newHeadingColor = getChartColor('--text');
+
+        chartTrend.updateOptions({
+            theme: { mode: newTheme },
+            xaxis: { labels: { style: { colors: newTextColor } } },
+            yaxis: { labels: { style: { colors: newTextColor } } },
+            grid: { borderColor: newBorderColor }
+        });
+
+        chartSentiment.updateOptions({
+            theme: { mode: newTheme },
+            legend: { labels: { colors: newTextColor } },
+            plotOptions: { pie: { donut: { labels: { value: { color: newHeadingColor } } } } }
+        });
+    });
+});
+</script>
+{% endblock %}

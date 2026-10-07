@@ -12,9 +12,7 @@ client = Groq(
 )
 
 
-# ============================
-# Sentiment
-# ============================
+
 def analyze_sentiment(text: str) -> str:
     if not text or not text.strip():
         return 'neutral'
@@ -28,9 +26,7 @@ def analyze_sentiment(text: str) -> str:
     return 'neutral'
 
 
-# ============================
-# Sentiment Summary
-# ============================
+
 def get_sentiment_summary(answers_qs) -> dict:
     counts = {'positive': 0, 'neutral': 0, 'negative': 0}
 
@@ -53,15 +49,12 @@ def get_sentiment_summary(answers_qs) -> dict:
     }
 
 
-# ============================
-# SAFE JSON EXTRACTOR
-# ============================
+
 def extract_json(text: str):
     """
     Fixes Groq markdown JSON issues
     """
     try:
-        # remove ```json blocks if present
         cleaned = re.sub(r"```json|```", "", text).strip()
         return json.loads(cleaned)
     except:
@@ -72,9 +65,6 @@ def extract_json(text: str):
         }
 
 
-# ============================
-# GROQ AI ANALYSIS
-# ============================
 def analyze_feedback_insights(text: str) -> dict:
 
     if not text or not text.strip():
@@ -127,7 +117,7 @@ Feedback:
         }
 
     except Exception as e:
-        print("🔥 GROQ ERROR:", str(e))  # IMPORTANT FOR DEBUG
+        print("🔥 GROQ ERROR:", str(e)) 
 
         return {
             'sentiment': sentiment,

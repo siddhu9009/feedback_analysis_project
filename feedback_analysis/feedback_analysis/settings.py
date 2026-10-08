@@ -8,15 +8,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 groq_API_KEY = os.getenv("GROQ_API_KEY") or os.getenv("groq_API_KEY")
-# ===============================
-# BASE DIRECTORY
-# ===============================
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# ===============================
-# SECURITY
-# ===============================
 SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-11t1_^#nx_3j#x9k5g5vi+u!la+urp+kfn+_g-@g+@n3onszyi')
 
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
@@ -29,9 +24,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-# ===============================
-# APPLICATIONS
-# ===============================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,9 +36,7 @@ INSTALLED_APPS = [
 ]
 
 
-# ===============================
-# MIDDLEWARE
-# ===============================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -58,19 +48,14 @@ MIDDLEWARE = [
 ]
 
 
-# ===============================
-# URL CONFIGURATION
-# ===============================
+
 ROOT_URLCONF = 'feedback_analysis.urls'
 
 
-# ===============================
-# TEMPLATES
-# ===============================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'feedback' / 'templates'],  # You can add custom template folder later if needed
+        'DIRS': [BASE_DIR / 'feedback' / 'templates'],  
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -83,15 +68,11 @@ TEMPLATES = [
 ]
 
 
-# ===============================
-# WSGI
-# ===============================
+
 WSGI_APPLICATION = 'feedback_analysis.wsgi.application'
 
 
-# ===============================
-# DATABASE
-# ===============================
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -100,9 +81,6 @@ DATABASES = {
 }
 
 
-# ===============================
-# PASSWORD VALIDATION
-# ===============================
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

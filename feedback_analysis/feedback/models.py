@@ -36,7 +36,6 @@ class FormField(models.Model):
     choices         = models.TextField(blank=True, help_text="Comma-separated options for dropdown")
     required        = models.BooleanField(default=True)
 
-    # ── If False, skip avg/min/max (use for phone, vehicle number etc.) ───────
     calculate_stats = models.BooleanField(
         default=True,
         help_text="Uncheck for phone numbers, vehicle numbers — skips average/min/max calculation"
@@ -75,7 +74,6 @@ class ResponseAnswer(models.Model):
         null=True,
     )
 
-    # ── AI Analysis & Insights ────────────────────────────────────────────────
     ai_issues         = models.TextField(blank=True, null=True, help_text="Detected product/service issues")
     ai_suggestions    = models.TextField(blank=True, null=True, help_text="Suggested product/service improvements")
     form_issues       = models.TextField(blank=True, null=True, help_text="Detected issues with the form itself")

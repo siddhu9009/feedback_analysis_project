@@ -252,6 +252,4 @@ GitHub: [@siddhu9009](https://github.com/siddhu9009)
 
 ---
 
-## License
 
-This project is licensed under the [MIT License](LICENSE).
